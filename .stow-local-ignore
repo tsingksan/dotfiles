@@ -1,0 +1,9 @@
+..ignore
+.git
+.gitignore
+.gitmodules
+README.md
+
+bin
+shell
+.config/alacritty/*.toml
