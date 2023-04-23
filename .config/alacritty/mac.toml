@@ -1,0 +1,124 @@
+# https://github.com/hmarr/dotfiles/blob/main/bin/update-alacritty-icon.sh
+
+[terminal]
+  [terminal.shell]
+  args    = ["-c", "-l", "tmux new-session -A -D -s ZLL"]
+  program = "/bin/zsh"
+
+[env]
+TERM = "xterm-256color"
+
+[window]
+blur                      = false
+decorations               = "Buttonless"
+decorations_theme_variant = "None"
+dynamic_padding           = false
+dynamic_title             = true
+opacity                   = 0.9
+option_as_alt             = "Both"
+padding                   = { x = 6, y = 6 }
+startup_mode              = "Windowed"
+title                     = "Alacritty"
+
+[font]
+size = 13
+
+  [font.normal]
+  family = "FiraMono Nerd Font"
+  style  = "Regular"
+
+  [font.bold]
+  family = "FiraMono Nerd Font"
+  style  = "Regular"
+
+  [font.italic]
+  family = "FiraMono Nerd Font"
+  style  = "Medium Italic"
+
+  [font.bold_italic]
+  family = "FiraMono Nerd Font"
+  style  = "Bold Italic"
+
+  [font.offset]
+  x = 0
+  y = 1
+
+[selection]
+save_to_clipboard = true
+
+[keyboard]
+bindings = [
+  { key = "Left", chars = "\u0001", mods = "Command" },      # 移动到行前
+  { key = "Right", chars = "\u0005", mods = "Command" },     # 移动到行后
+  { key = "Backspace", chars = "\u0015", mods = "Command" }, # 移动到行后
+  { key = "Left", chars = "\u001B\u0062", mods = "Alt" },    # 移动到单词前
+  { key = "Right", chars = "\u001B\u0066", mods = "Alt" },   # 移动到单词后
+
+  # window
+  { key = "Minus", mods = "Command", action = "DecreaseFontSize" },
+  { key = "Plus", mods = "Command", action = "IncreaseFontSize" },
+  { key = "Key0", mods = "Command", action = "ResetFontSize" },
+  { key = "Q", mods = "Command", action = "Quit" },                 # 推出
+  { key = "Return", mods = "Alt", action = "ToggleFullscreen" },    # 全屏 ToggleSimpleFullscreen
+
+  # tmux
+  { key = "B", chars = "\u0002", mods = "Command" }, # 前缀键
+
+  { chars = "\u0002s", key = "A", mods = "Alt" }, # 选择一个session
+  { key = "R", chars = "\u0002$", mods = "Alt" }, # Rename the current session..
+  { key = "P", chars = "\u0002(", mods = "Alt" }, # 上一个session
+  { key = "N", chars = "\u0002)", mods = "Alt" }, # 下一个session
+  # { chars = "\u0002f", key = "F", mods = "Alt" }, # 查找session
+
+  { chars = "\u0002c", key = "T", mods = "Command" },
+  { key = "Key7", chars = "\u0002&", mods = "Command|Alt" }, # Kill the current window.
+  { key = "R", chars = "\u0002,", mods = "Command|Shift" },  # Rename the current window.
+  # { key = "S", chars = "\u0002'", mods = "Command|Alt" },    # 跳转到对应的window
+  { key = "P", chars = "\u0002p", mods = "Command" }, # 上一个window
+  { key = "N", chars = "\u0002n", mods = "Command" }, # 下一个window
+  { chars = "\u00021", key = "Key1", mods = "Alt" },
+  { chars = "\u00022", key = "Key2", mods = "Alt" },
+  { chars = "\u00023", key = "Key3", mods = "Alt" },
+  { chars = "\u00024", key = "Key4", mods = "Alt" },
+  { chars = "\u00025", key = "Key5", mods = "Alt" },
+  { chars = "\u00026", key = "Key6", mods = "Alt" },
+  { chars = "\u00027", key = "Key7", mods = "Alt" },
+  { chars = "\u00028", key = "Key8", mods = "Alt" },
+  { chars = "\u00029", key = "Key9", mods = "Alt" },
+
+  { key = "O", chars = "\u0002\u0008", mods = "Command|Shift" }, # 所有窗格向前移动一个位置，第一个窗格变成最后一个窗格。
+  { key = "O", chars = "\u0002\u000f", mods = "Command" },       # 所有窗格向后移动一个位置，最后一个窗格变成第一个窗格。
+  { key = "D", chars = "\u0002\"", mods = "Command|Shift" },     # 上下分割
+  { key = "D", chars = "\u0002%", mods = "Command" },            # 左右分割
+  { key = "T", chars = "\u0002!", mods = "Command|Shift" },      # 当前的pane另起一个window
+  { chars = "\u0002;", key = "LBracket", mods = "Command" },     # 移至先前活动的pane。
+  { chars = "\u0002o", key = "RBracket", mods = "Command" },     # 移至下一个pane
+  { key = "Z", chars = "\u0002z", mods = "Command" },            # 放大当前的pane
+  { chars = "\u0002x", key = "W", mods = "Command" },            # Kill the current pane.
+  { chars = "\u0002H", key = "H", mods = "Command|Shift" },
+  { chars = "\u0002J", key = "J", mods = "Command|Shift" },
+  { chars = "\u0002K", key = "K", mods = "Command|Shift" },
+  { chars = "\u0002L", key = "L", mods = "Command|Shift" },
+  { key = "F", chars = "\u0002[", mods = "Command" },            # copy mod
+
+  { chars = "\u0002q", key = "Q", mods = "Alt" },            # q 简要显示窗格索引。
+  { key = "Key3", chars = "\u0002#", mods = "Command|Alt" }, # 展现所有buffers
+  { key = "Back", chars = "\u0002-", mods = "Command|Alt" }, # 删除最近复制的文本缓冲区。
+  { key = "V", chars = "\u0002=", mods = "Alt" },            # 显示全部粘贴版
+  { key = "End", chars = "\u0002?", mods = "Command|Alt" },  # 帮助
+  { key = "T", chars = "\u0002t", mods = "Alt" },            # Show the time.
+]
+
+[general]
+live_config_reload = true
+
+import = [
+  "./themes/dracula_plus.toml",
+] # gruvbox_dark solarized_dark nord dracula catppuccin_mocha material_theme meliora
+
+
+# . Prompt for an index to move the current window. 提示输入索引以移动window。
+# : Enter the tmux command prompt. 输入 tmux 命令提示符
+# D Choose a client to detach. 选择要分离的客户端。
+# r 强制重绘附加的客户端。
+# w Choose the current window interactively.
