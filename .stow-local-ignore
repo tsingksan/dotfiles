@@ -1,10 +1,13 @@
-..ignore
+.DS_Store
+
 .git
 .gitignore
 .gitmodules
 README.md
 
 bin
-shell
 .config/alacritty/*.toml
 .config/zsh/plugins
+
+待办.txt
+Makefile

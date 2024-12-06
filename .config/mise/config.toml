@@ -1,7 +1,3 @@
 [tools]
-deno = "latest"
-node = "22"
-go = "latest"
-zig = "latest"
-python = "latest"
-bun = "latest"
+"aqua:jqlang/jq" = "latest"
+usage = "latest"

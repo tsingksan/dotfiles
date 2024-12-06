@@ -1,4 +1,13 @@
 .DS_Store
 
+.local/share/konsole/bookmarks.xml
+.local/share/konsole/bookmarks.xml.bak
+.local/share/konsole/bookmarks.xml.tbcache
+.local/share/konsole/konsolestaterc
+
 .config/alacritty/alacritty.toml
 .config/vim/viminfo
+.config/nix-darwin/*.lock
+.config/konsolerc
+
+.ssh/known_hosts*

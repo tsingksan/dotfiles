@@ -12,64 +12,48 @@ if [[ ! -d "${ZINIT[BIN_DIR]}" ]]; then
     git clone https://github.com/zdharma-continuum/zinit.git "${ZINIT[BIN_DIR]}"
     print-P "%F{blue}✅ Zinit Installation Complete%f"
 fi
-
 source "${ZINIT[BIN_DIR]}/zinit.zsh"
 mkdir -p "$HOME/.cache/zinit/completions"
 
-# Plugin Loading
-zinit lucid for \
+zinit light-mode for \
     OMZ::lib/key-bindings.zsh \
-        light-mode \
-        as"command" from"gh-r" \
-        atclone"./starship init zsh > init.zsh; ./starship completions zsh > _starship" \
-        atpull"%atclone" src"init.zsh" \
-    starship/starship \
-        light-mode \
-        id-as"fast-syntax-highlighting" \
-        atinit"ZINIT[COMPINIT_OPTS]=-C; zicompinit; zicdreplay" \
-    zdharma-continuum/fast-syntax-highlighting
+    OMZ::lib/history.zsh
 
-# Fuzzy Finder and Navigation
+zinit light-mode as"command" from"gh-r" \
+    atclone"./starship init zsh > init.zsh; ./starship completions zsh > _starship" \
+    atpull"%atclone" src"init.zsh" \
+    for starship/starship
 
-zinit wait'0a' lucid for \
-    OMZ::lib/history.zsh \
+zinit wait lucid for \
+    atinit"ZINIT[COMPINIT_OPTS]=-C; zicompinit; zicdreplay" \
+    zdharma-continuum/fast-syntax-highlighting \
+    zsh-users/zsh-completions \
+    nix-community/nix-zsh-completions
+
+zinit wait"0" lucid for \
     OMZ::lib/clipboard.zsh \
     OMZ::lib/completion.zsh \
-    OMZ::lib/theme-and-appearance.zsh
+    OMZ::lib/theme-and-appearance.zsh \
+    OMZ::lib/directories.zsh
 
-zinit wait'0b' lucid for \
-        light-mode \
-        from"gh-r" as"program" \
-        atload"zicompinit; zicdreplay" \
-    junegunn/fzf \
-    OMZ::plugins/fzf \
-        id-as"fzf-tab" \
-    Aloxaf/fzf-tab \
-        svn \
-        id-as"z" \
-        atinit"zstyle ':completion:*' menu select" \
-    agkozak/zsh-z
+zinit wait"0" lucid for OMZ::plugins/brew
 
-# Git and Development Tools
-zinit wait'1a' lucid for \
+zinit wait'1' lucid from"gh-r" as"program" for junegunn/fzf
+zinit wait'1' lucid for OMZ::plugins/fzf
+zinit wait'1' lucid for Aloxaf/fzf-tab
+zinit wait'1' lucid svn id-as"z" for agkozak/zsh-z
+
+zinit wait"2" lucid for \
     OMZ::plugins/git \
     OMZ::plugins/git-commit \
     OMZ::plugins/gpg-agent \
-        atload"mise activate zsh &>/dev/null" \
-    OMZ::plugins/mise \
-        id-as"forgit" \
     wfxr/forgit
 
-# Utility Plugins
-zinit wait'1b' lucid for \
-    OMZ::plugins/1password \
-        id-as"pnpm-shell-completion" \
-        nocompile"#!/*" \
-        atload"zpcdreplay" \
-        atclone"./zplug.zsh" \
-        atpull"%atclone" \
-    g-plane/pnpm-shell-completion \
-        id-as"alias-tips" \
-    djui/alias-tips
-zinit ice wait'1b' lucid
-zinit snippet "$HOME/.config/zsh/plugins/zsh-history-manager.plugin.zsh"
+# zinit wait"3" lucid for decayofmind/zsh-fast-alias-tips
+zinit wait"3" lucid for OMZ::plugins/1password
+zinit wait"3" lucid for atload"export YSU_HARDCORE=1" MichaelAquilina/zsh-you-should-use
+zinit wait"3" lucid id-as"pnpm-shell-completion" \
+    nocompile"#!/*" \
+    atclone"./zplug.zsh" \
+    atpull"%atclone" \
+    for g-plane/pnpm-shell-completion

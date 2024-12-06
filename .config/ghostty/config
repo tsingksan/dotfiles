@@ -1,0 +1,22 @@
+font-size = 12
+font-family = FiraCode Nerd Font Mono
+theme = light:tokyonight-day,dark:tokyonight
+# theme = light:rose-pine-dawn,dark:rose-pine
+unfocused-split-opacity = 0.5
+macos-titlebar-style = tabs
+macos-icon-frame = beige
+
+
+#minimum-contrast = 1
+# theme = Dracula
+# theme = dark:GruvboxDark,light:GruvboxLight
+# background-opacity = 0.95
+# background-blur-radius = 20
+# macos-non-native-fullscreen = visible-menu
+# macos-option-as-alt = left
+# mouse-hide-while-typing = true
+
+#macos-icon = "custom-style"
+#macos-icon-frame = "plastic"
+#macos-icon-ghost-color = "#FFA500"
+#macos-icon-screen-color = "#FFA500"

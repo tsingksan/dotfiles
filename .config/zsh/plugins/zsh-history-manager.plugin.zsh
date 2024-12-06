@@ -1,43 +1,53 @@
-export HISTSIZE=10000        # 内存中的历史条目数
-export SAVEHIST=50000        # 持久化存储的历史条目数
+# 确保使用 XDG 规范的路径
+[[ -d "${XDG_STATE_HOME}/zsh" ]] || mkdir -p "${XDG_STATE_HOME}/zsh"
+HISTFILE="${XDG_STATE_HOME}/zsh/history"
 
-setopt EXTENDED_HISTORY          # Write the history file in the ":start:elapsed;command" format.
-setopt INC_APPEND_HISTORY        # Write to the history file immediately, not when the shell exits.
-setopt SHARE_HISTORY             # Share history between all sessions.
-setopt HIST_EXPIRE_DUPS_FIRST    # Expire duplicate entries first when trimming history.
-setopt HIST_IGNORE_DUPS          # Don\'t record an entry that was just recorded again.
-setopt HIST_IGNORE_ALL_DUPS      # Delete old recorded entry if new entry is a duplicate.
-setopt HIST_FIND_NO_DUPS         # Do not display a line previously found.
-setopt HIST_IGNORE_SPACE         # Don\'t record an entry starting with a space.
-setopt HIST_SAVE_NO_DUPS         # Don\'t write duplicate entries in the history file.
-setopt HIST_REDUCE_BLANKS        # Remove superfluous blanks before recording entry.
-setopt HIST_NO_STORE             # 不存储 history 命令本身
+# 扩展历史选项
+setopt EXTENDED_HISTORY        # 存储命令的时间戳和持续时间
+setopt HIST_EXPIRE_DUPS_FIRST  # 当历史记录已满时，首先删除重复项
+setopt HIST_FIND_NO_DUPS       # 搜索历史时不显示重复项
+setopt HIST_IGNORE_ALL_DUPS    # 添加新条目时删除旧的重复条目
+setopt HIST_IGNORE_DUPS        # 不添加连续的重复条目
+setopt HIST_IGNORE_SPACE       # 不保存以空格开头的命令
+setopt HIST_REDUCE_BLANKS      # 删除命令中不必要的空白
+setopt HIST_SAVE_NO_DUPS       # 不保存重复的命令
+# setopt INC_APPEND_HISTORY      #  
+# setopt INC_APPEND_HISTORY_TIME #
+setopt SHARE_HISTORY           # 在所有打开的 shell 间共享历史记录
 
-# https://blog.jasongzy.com/shell-history.html
+# 条件性提示命令设置
 [ ${BASH_VERSION} ] && PROMPT_COMMAND="mypromptcommand"
 [ ${ZSH_VERSION} ] && precmd() { mypromptcommand; }
+
+# 自定义历史管理函数
 function mypromptcommand {
     local exit_status=$?
+    local number
+    
+    # 根据 shell 类型获取最后一个命令的编号
     if [ ${ZSH_VERSION} ]; then
-        local number=$(history -1 | awk '{print $1}')
+        number=$(history -1 | awk '{print $1}')
     elif [ ${BASH_VERSION} ]; then
-        local number=$(history 1 | awk '{print $1}')
+        number=$(history 1 | awk '{print $1}')
     fi
-    # echo $number
+    
+    # 从历史记录中删除未找到命令的条目
     if [ -n "$number" ]; then
-        # If the exit status was 127, the command was not found. Let's remove it from history
         if [ $exit_status -eq 127 ] && ([ -z $HISTLASTENTRY ] || [ $HISTLASTENTRY -lt $number ]); then
             local RED='\033[0;31m'
             local NC='\033[0m'
+            
+            local HISTORY_IGNORE
             if [ ${ZSH_VERSION} ]; then
-                local HISTORY_IGNORE="${(b)$(fc -ln $number $number)}"
+                HISTORY_IGNORE="${(b)$(fc -ln $number $number)}"
                 fc -W
                 fc -p $HISTFILE $HISTSIZE $SAVEHIST
             elif [ ${BASH_VERSION} ]; then
-                local HISTORY_IGNORE=$(history 1 | awk '{print $2}')
+                HISTORY_IGNORE=$(history 1 | awk '{print $2}')
                 history -d $number
             fi
-            echo -e "${RED}Deleted '$HISTORY_IGNORE' from history.${NC}"
+            
+            echo -e "${RED}Removed from history: '$HISTORY_IGNORE'。${NC}"
         else
             HISTLASTENTRY=$number
         fi
