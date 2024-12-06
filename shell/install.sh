@@ -18,26 +18,34 @@ bash -c "$(curl --fail --show-error --silent --location https://raw.githubuserco
 if [ "$(uname)" = "Darwin" ]; then
     printf "%bSetting up for %bMacos Darwin%b\n" "${BLUE}" "${RED}" "${NC}"
 
-    printf "%bIntsalling brew%b\n" "${BLUE}" "${NC}"
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    sh <(curl -L https://nixos.org/nix/install)
 
-    printf "%bIntsalling neovim%b\n" "${BLUE}" "${NC}"
-    brew install neovim
+    [ ! -d "$HOME"/.config/nix-darwin ] && mkdir "$HOME"/.config/nix-darwin
+    curl -o "$HOME/.config/nix-darwin/flake.nix" https://gist.githubusercontent.com/jmatsushita/5c50ef14b4b96cb24ae5268dab613050/raw/24a755065de59fc77a552518e106454750e86a49/flake.nix
+    curl -o "$HOME/.config/nix-darwin/configuration.nix" https://gist.githubusercontent.com/jmatsushita/5c50ef14b4b96cb24ae5268dab613050/raw/24a755065de59fc77a552518e106454750e86a49/configuration.nix
+    curl -o "$HOME/.config/nix-darwin/home.nix" https://gist.githubusercontent.com/jmatsushita/5c50ef14b4b96cb24ae5268dab613050/raw/24a755065de59fc77a552518e106454750e86a49/home.nix
+    darwin-rebuild switch --flake "$HOME"/.config/nix-darwin      
 
-    printf "%bIntsalling git%b\n" "${BLUE}" "${NC}"
-    brew install git
+    # printf "%bIntsalling brew%b\n" "${BLUE}" "${NC}"
+    # /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-    printf "%bIntsalling gnupg%b\n" "${BLUE}" "${NC}"
-    brew install gnupg
+    # printf "%bIntsalling neovim%b\n" "${BLUE}" "${NC}"
+    # brew install neovim
 
-    printf "%bIntsalling pinentry-mac%b\n" "${BLUE}" "${NC}"
-    brew install pinentry-mac
+    # printf "%bIntsalling git%b\n" "${BLUE}" "${NC}"
+    # brew install git
 
-    printf "%bIntsalling stow%b\n" "${BLUE}" "${NC}"
-    brew install stow
+    # printf "%bIntsalling gnupg%b\n" "${BLUE}" "${NC}"
+    # brew install gnupg
 
-    printf "%bIntsalling fira-code%b\n" "${BLUE}" "${NC}"
-    brew install font-fira-code-nerd-font font-fira-mono-nerd-font
+    # printf "%bIntsalling pinentry-mac%b\n" "${BLUE}" "${NC}"
+    # brew install pinentry-mac
+
+    # printf "%bIntsalling stow%b\n" "${BLUE}" "${NC}"
+    # brew install stow
+
+    # printf "%bIntsalling fira-code%b\n" "${BLUE}" "${NC}"
+    # brew install font-fira-code-nerd-font font-fira-mono-nerd-font
 
 elif [ "$(uname -o)" = "GNU/Linux" ]; then
     if [ -f /etc/arch-release ]; then
@@ -116,3 +124,18 @@ elif [ "$(uname -o)" = "GNU/Linux" ]; then
 fi
 
 chmod +x "$XDG_CONFIG_HOME/dotfiles/bin/pinentry-wrapper"
+
+if [ "$(uname)" = "Darwin" ]; then
+    rm "$HOME"/.config/nix-darwin/flake.nix "$HOME"/.config/nix-darwin/configuration.nix "$HOME"/.config/nix-darwin/home.nix 
+    ln "$XDG_CONFIG_HOME"/dotfiles/.config/nix-darwin/configuration.nix "$HOME"/.config/nix-darwin/configuration.nix 
+    ln "$XDG_CONFIG_HOME"/dotfiles/.config/nix-darwin/flake.nix "$HOME"/.config/nix-darwin/flake.nix 
+    ln "$XDG_CONFIG_HOME"/dotfiles/.config/nix-darwin/home.nix "$HOME"/.config/nix-darwin/home.nix 
+
+    echo "cloning dotfiles"
+    if [ -d "$HOME"/.config/profile ]; then
+        echo "found old profile, backing up to .profile.backup"
+        mv "$HOME"/.config/profile "$HOME"/.config/profile.backup
+    fi
+    git clone git@github.com:tsingksan/Profile.git "$HOME"/.config/profile
+    # darwin-rebuild switch --flake "$HOME"/.config/nix-darwin
+fi;

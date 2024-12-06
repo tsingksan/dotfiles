@@ -2,3 +2,4 @@
 
 .config/alacritty/alacritty.toml
 .config/vim/viminfo
+.config/nix-darwin/*.lock

@@ -58,7 +58,9 @@ zinit wait'1a' lucid for \
         atload"mise activate zsh &>/dev/null" \
     OMZ::plugins/mise \
         id-as"forgit" \
-    wfxr/forgit
+    wfxr/forgit \
+        id-as"nix-zsh-completions" \
+    nix-community/nix-zsh-completions
 
 # Utility Plugins
 zinit wait'1b' lucid for \

@@ -6,5 +6,6 @@ README.md
 
 bin
 shell
+.config/nix-darwin
 .config/alacritty/*.toml
 .config/zsh/plugins
