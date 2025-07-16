@@ -1,6 +1,8 @@
 [submodule ".config/nvim"]
 	path = .config/nvim
-	url = https://github.com/NvChad/starter
+	# url = https://github.com/NvChad/starter
+	url = https://github.com/tsingksan/kickstart.nvim
+	branch = main
 [submodule ".config/alacritty/themes"]
 	path = .config/alacritty/themes
 	url = https://github.com/alacritty/alacritty-theme

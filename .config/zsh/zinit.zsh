@@ -50,10 +50,11 @@ zinit wait"2" lucid for \
     wfxr/forgit
 
 # zinit wait"3" lucid for decayofmind/zsh-fast-alias-tips
-zinit wait"3" lucid for OMZ::plugins/1password
-zinit wait"3" lucid for atload"export YSU_HARDCORE=1" MichaelAquilina/zsh-you-should-use
+zinit wait"3" lucid for MichaelAquilina/zsh-you-should-use
 zinit wait"3" lucid id-as"pnpm-shell-completion" \
-    nocompile"#!/*" \
+    atload"zpcdreplay" \
     atclone"./zplug.zsh" \
     atpull"%atclone" \
     for g-plane/pnpm-shell-completion
+
+# zinit wait"3" lucid for OMZ::plugins/1password

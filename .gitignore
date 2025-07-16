@@ -1,9 +1,8 @@
 .DS_Store
 
-.local/share/konsole/bookmarks.xml
-.local/share/konsole/bookmarks.xml.bak
-.local/share/konsole/bookmarks.xml.tbcache
-.local/share/konsole/konsolestaterc
+.local/share/konsole
+!.local/share/konsole/macos*.profile
+!.local/share/konsole/macos.keytab
 
 .config/alacritty/alacritty.toml
 .config/vim/viminfo

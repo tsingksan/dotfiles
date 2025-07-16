@@ -53,3 +53,5 @@ function mypromptcommand {
         fi
     fi
 }
+
+export HISTORY_IGNORE="(ls|pwd|z *|pnpm *|cd *|.*)"

@@ -16,15 +16,16 @@ path=(
 if [[ -z "$SSH_AUTH_SOCK" ]]; then
   export SSH_AUTH_SOCK=$$(gpgconf --list-dirs agent-ssh-socket);
 fi
-# "/opt/homebrew/opt/node@22/bin:$PATH"
 
 
 if [[ "$(uname)" = "Darwin" ]]; then
     path=(
         /opt/homebrew/bin
+        /opt/homebrew/sbin
         /usr/local/bin
         /opt/homebrew/Cellar/rustup/1.27.1_1/bin
         /opt/homebrew/opt/ruby/bin
+        /opt/homebrew/opt/postgresql@17/bin
         $path
     )
 fi

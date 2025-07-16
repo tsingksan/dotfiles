@@ -20,4 +20,4 @@ noproxy() {
 }
 
 # Auto-enable proxy if not set
-[[ -z "$HTTPS_PROXY" ]] && proxy
+# [[ -z "$HTTPS_PROXY" ]] && proxy

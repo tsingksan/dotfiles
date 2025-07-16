@@ -1,9 +1,7 @@
 
-# Dotfiles Management with Nix and Stow
+# Dotfiles Management with Stow
 
-This repository contains all my dotfiles, which have now been fully migrated to Nix. No further updates will be made directly here. If you want to use Stow to link these dotfiles, you can use the following Git commit hash:
-
-**Git Commit Hash:** `656687c`
+This repository contains all my dotfiles
 
 ---
 
