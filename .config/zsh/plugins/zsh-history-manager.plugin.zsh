@@ -54,4 +54,4 @@ function mypromptcommand {
     fi
 }
 
-export HISTORY_IGNORE="(ls|pwd|z *|pnpm *|cd *|.*)"
+export HISTORY_IGNORE="(ls|pwd|z *|pnpm *|npx *|mkdir *|cd *|.*)"

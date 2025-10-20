@@ -3,10 +3,11 @@
 .local/share/konsole
 !.local/share/konsole/macos*.profile
 !.local/share/konsole/macos.keytab
+.config/konsolerc
 
 .config/alacritty/alacritty.toml
 .config/vim/viminfo
 .config/nix-darwin/*.lock
-.config/konsolerc
+.config/kitty/*-theme.auto.conf
 
 .ssh/known_hosts*

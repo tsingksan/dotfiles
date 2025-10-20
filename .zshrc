@@ -11,8 +11,6 @@ source "$HOME/.config/zsh/completion.zsh"
 source "$HOME/.config/zsh/zinit.zsh"
 source "$HOME/.config/zsh/os_specific.zsh"
 
-source "$HOME/.config/zsh/plugins/zsh-history-manager.plugin.zsh"
-
 setup_directory_navigation() {
     # Auto list directory contents after cd
     function cd() {

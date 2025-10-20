@@ -29,14 +29,15 @@ define log_error
 endef
 
 # 软件列表
+# thunderbird@esr 
 BREW_CASKS := font-fira-code-nerd-font font-fira-mono-nerd-font \
-	1password keepassxc maccy snipaste brave-browser \
-	chatgpt thunderbird@esr typora visual-studio-code cursor fork \
+	1password maccy snipaste brave-browser keka hammerspoon \
+	chatgpt typora visual-studio-code cursor fork \
 	insomnium bruno telegram wechat wechatwork localsend ddpm logi-options+ \
-	spotify docker appcleaner switchhosts
+	spotify docker appcleaner switchhosts bitwarden
 
 BREW_FORMULAE := nvim tmux rustup zig zls go python@3 \
-	deno node@22 fastfetch htop ripgrep
+	deno node@22 fastfetch htop ripgrep rclone neovim
 
 ARCH_PACMAN := pinentry openssh zsh htop fastfetch neovim \
 	ttf-firacode-nerd otf-firamono-nerd docker zig zls go python nodejs-lts-jod \
@@ -247,11 +248,11 @@ dotfiles:
 
 	@if [ "$(OS)" = "Darwin" ]; then \
 		sudo mkdir -p "/opt/homebrew/etc/mihomo"; \
-		cd "$(XDG_CONFIG_HOME)/mihomo/config.yaml"; \
+		cd "$(XDG_CONFIG_HOME)/mihomo"; \
 		stow . -t "/opt/homebrew/etc/mihomo"
 	elif [ "$(IS_ARCH)" = "1" ]; then \
 		sudo mkdir -p "/etc/mihomo"; \
-		cd "$(XDG_CONFIG_HOME)/mihomo/config.yaml"; \
+		cd "$(XDG_CONFIG_HOME)/mihomo"; \
 		stow . -t "/etc/mihomo"
 	fi
 

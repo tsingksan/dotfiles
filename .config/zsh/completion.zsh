@@ -2,9 +2,9 @@
 
 export ZSH_COMPDUMP="$XDG_CACHE_HOME/zsh/zcompdump-$ZSH_VERSION"
 
-if [ ! -f "$XDG_DATA_HOME/zinit/completions/_docker" ] && command -v docker &>/dev/null; then
-    docker completion zsh >"$XDG_DATA_HOME/zinit/completions/_docker"
-fi
+# if [ ! -f "$XDG_DATA_HOME/zinit/completions/_docker" ] && command -v docker &>/dev/null; then
+#     docker completion zsh >"$XDG_DATA_HOME/zinit/completions/_docker"
+# fi
 
 zstyle ':completion:*' cache-path "$XDG_CACHE_HOME/zsh/zcompcache"
 zstyle ':completion:*:*:git:*' matcher-list ''
@@ -22,9 +22,9 @@ zstyle ':completion:*:*:git:*' matcher-list ''
 #     '([ -d "$realpath" ] && tree -C "$realpath") || cat "$realpath"'
 
 # Smart completion initialization
-# autoload -Uz compinit
+autoload -Uz compinit
 
-# if [[ -n "$ZSH_COMPDUMP" ]]; then
+if [[ -n "$ZSH_COMPDUMP" ]]; then
 #     local today dump_modified
 
 #     if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -39,8 +39,8 @@ zstyle ':completion:*:*:git:*' matcher-list ''
 #     if [[ -f "$ZSH_COMPDUMP" && ($(($today - $dump_modified)) -lt 7) ]]; then
 #         compinit -d "$ZSH_COMPDUMP"
 #     else
-#         compinit -C -d "$ZSH_COMPDUMP"
+        compinit -C -d "$ZSH_COMPDUMP"
 #     fi
 # else
 #     compinit -d "$ZSH_COMPDUMP"
-# fi
+fi
