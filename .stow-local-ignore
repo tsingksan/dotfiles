@@ -1,13 +1,11 @@
-.DS_Store
-
-.git
-.gitignore
-.gitmodules
-README.md
+\.DS_Store
+\.git
+\.gitignore
+\.gitmodules
 
 bin
-.config/alacritty/*.toml
-.config/zsh/plugins
+.*\.bak
 
-待办.txt
 Makefile
+^/scripts
+^/README.*

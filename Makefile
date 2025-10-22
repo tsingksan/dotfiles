@@ -1,4 +1,8 @@
-.PHONY: all macos arch dotfiles archinstall remount cursor-extensions
+.PHONY: all
+.PHONY: install-pkg-macos install-pkg-arch setup-dotfiles
+.PHONY: enable-mihomo code-link-cursor archinstall remount
+
+export XDG_CONFIG_HOME := $(HOME)/.config
 
 # 系统变量
 OS := $(shell uname)
@@ -11,7 +15,12 @@ ARCHPORT ?= 22
 ROOT_PASSWORD ?= 123
 USER_PASSWORD ?= 123
 USERNAME ?= tsingksan
-XDG_CONFIG_HOME ?= $(HOME)/.config
+SCRIPTS_DIR := $(CURDIR)/scripts
+
+# Arch Linux 分区配置
+ROOT_DEVICE ?= /dev/nvme0n1p6
+SWAP_DEVICE ?= /dev/nvme0n1p5
+BOOT_DEVICE ?= /dev/nvme0n1p1
 
 # 颜色和日志
 GREEN := \033[0;32m
@@ -28,104 +37,50 @@ define log_error
 	@printf "$(RED)[ERROR]$(NC) %s\n" "$(1)" >&2
 endef
 
-# 软件列表
-# thunderbird@esr 
-BREW_CASKS := font-fira-code-nerd-font font-fira-mono-nerd-font \
+# ============================================================================
+# 软件包列表
+# ============================================================================
+
+# macOS Homebrew Casks
+BREW_CASKS := \
+	font-fira-code-nerd-font font-fira-mono-nerd-font \
 	1password maccy snipaste brave-browser keka hammerspoon \
 	chatgpt typora visual-studio-code cursor fork \
 	insomnium bruno telegram wechat wechatwork localsend ddpm logi-options+ \
 	spotify docker appcleaner switchhosts bitwarden
 
-BREW_FORMULAE := nvim tmux rustup zig zls go python@3 \
-	deno node@22 fastfetch htop ripgrep rclone neovim
+# macOS Homebrew Formulae
+BREW_FORMULAE := \
+	stow gnupg pinentry-mac mihomo \
+	neovim rustup zig zls go python@3 \
+	deno node@22 fastfetch htop ripgrep
 
-ARCH_PACMAN := pinentry openssh zsh htop fastfetch neovim \
+# Arch Linux Pacman 包
+ARCH_PACMAN := \
+	pinentry openssh zsh htop fastfetch neovim \
 	ttf-firacode-nerd otf-firamono-nerd docker zig zls go python nodejs-lts-jod \
-	handbrake
+	handbrake stow git ripgrep
 
-ARCH_AUR := brave-bin visual-studio-code-bin cursor-bin snipaste switchhosts-bin 
+# Arch Linux AUR 包
+ARCH_AUR := \
+	brave-bin visual-studio-code-bin cursor-bin snipaste switchhosts-bin 
 
-# Arch Linux 挂载命令
-define MOUNT_SUBVOLS
-mount -t btrfs -o compress=zstd,subvol=/@ /dev/nvme0n1p6 /mnt && \
-mkdir -p /mnt/{home,boot} && \
-mount -t btrfs -o compress=zstd,subvol=/@home /dev/nvme0n1p6 /mnt/home && \
-mount /dev/nvme0n1p1 /mnt/boot && \
-swapon /dev/nvme0n1p5
-endef
+# ============================================================================
+# 辅助脚本路径
+# ============================================================================
 
-# 默认目标
-all:
-	$(call log_info,"请选择目标: archinstall, macos, arch, dotfiles, remount")
+INSTALL_ARCH_SCRIPT := $(SCRIPTS_DIR)/install-arch.sh
+REMOUNT_ARCH_SCRIPT := $(SCRIPTS_DIR)/remount-arch.sh
+SETUP_DOTFILES_SCRIPT := $(SCRIPTS_DIR)/setup-dotfiles.sh
+SETUP_MIHOMO_SCRIPT := $(SCRIPTS_DIR)/setup-mihomo.sh
 
-# Arch Linux 安装
-archinstall:
-	$(call log_info,"开始 Arch Linux 安装...")
-	ssh $(SSH_OPTIONS) -p $(ARCHPORT) root@$(ARCHADDR) "\
-	set -e; \
-	systemctl stop reflector.service && \
-	timedatectl set-ntp true && \
-	echo 'Server = https://mirrors.tuna.tsinghua.edu.cn/archlinux/\$$repo/os/\$$arch\nServer = https://mirrors.ustc.edu.cn/archlinux/\$$repo/os/\$$arch' > /etc/pacman.d/mirrorlist.new && \
-	cat /etc/pacman.d/mirrorlist >> /etc/pacman.d/mirrorlist.new && \
-	mv /etc/pacman.d/mirrorlist.new /etc/pacman.d/mirrorlist && \
-	mkswap -L swap /dev/nvme0n1p5 && \
-	mkfs.btrfs -f -L arch /dev/nvme0n1p6 && \
-	mount -t btrfs -o compress=zstd /dev/nvme0n1p6 /mnt && \
-	btrfs subvolume create /mnt/@ && \
-	btrfs subvolume create /mnt/@home && \
-	umount /mnt && \
-	sleep 1 && \
-	$(MOUNT_SUBVOLS) && \
-	pacman -Sy --noconfirm archlinux-keyring && \
-	pacstrap /mnt base base-devel linux linux-firmware btrfs-progs && \
-	pacstrap /mnt networkmanager sudo vim && \
-	genfstab -U /mnt > /mnt/etc/fstab && \
-	arch-chroot /mnt /bin/bash -c '\
-	set -e && \
-	echo \"127.0.0.1 localhost\" > /etc/hosts && \
-	echo \"::1 localhost\" >> /etc/hosts && \
-	ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
-	hwclock --systohc && \
-	sed -i \"s/#en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/\" /etc/locale.gen && \
-	sed -i \"s/#zh_CN.UTF-8 UTF-8/zh_CN.UTF-8 UTF-8/\" /etc/locale.gen && \
-	locale-gen && \
-	echo \"LANG=en_US.UTF-8\" > /etc/locale.conf && \
-	pacman -S --noconfirm grub efibootmgr os-prober && \
-	grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=ARCH && \
-	sed -i \"s/GRUB_CMDLINE_LINUX_DEFAULT=\\\"loglevel=3 quiet\\\"/GRUB_CMDLINE_LINUX_DEFAULT=\\\"loglevel=5 nowatchdog\\\"/\" /etc/default/grub && \
-	grub-mkconfig -o /boot/grub/grub.cfg && \
-	pacman -S --noconfirm plasma sddm konsole dolphin ark xorg && \
-	pacman -S --noconfirm nvidia && \
-	systemctl enable --now sddm NetworkManager && \
-	echo \"root:$(ROOT_PASSWORD)\" | chpasswd && \
-	useradd -m -G wheel -s /bin/bash $(USERNAME) && \
-	echo \"$(USERNAME):$(USER_PASSWORD)\" | chpasswd && \
-	sed -i \"s/#%wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/\" /etc/sudoers && \
-	pacman -S --noconfirm noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra fcitx5-chinese-addons fcitx5-configtool firefox chromium stow git rustup fastfetch && \
-	mkdir -p /home/$(USERNAME)/.config/environment.d && \
-	echo \"XMODIFIERS=@im=fcitx\" >> /home/$(USERNAME)/.config/environment.d/im.conf && \
-	chown -R $(USERNAME):$(USERNAME) /home/$(USERNAME)/.config && \
-	sudo -u $(USERNAME) bash -c \"rustup default stable && \
-		cd /tmp && \
-		git clone https://aur.archlinux.org/paru.git && \
-		cd paru && \
-		makepkg -si --noconfirm && \
-		cd .. && \
-		rm -rf paru\" && \
-	sudo -u $(USERNAME) paru -S --noconfirm mihomo-bin 1password localsend-bin \
-	' && \
-	umount -R /mnt && \
-	reboot \
-	"
 
-# 重新挂载
-remount:
-	$(call log_info,"重新挂载分区...")
-	ssh $(SSH_OPTIONS) -p $(ARCHPORT) root@$(ARCHADDR) "$(MOUNT_SUBVOLS)"
-	$(call log_info,"挂载完成")
+enable-mihomo:
+	$(call log_info,"enable mihomo...")
+	@bash $(SETUP_MIHOMO_SCRIPT)
+	$(call log_info,"enable mihomo done")
 
-# macOS 配置
-macos:
+install-pkg-macos:
 	$(call log_info,"开始配置 macOS 环境...")
 	@if [ "$$EUID" -eq 0 ]; then \
 		$(call log_error,"不能以 root 用户运行此脚本"); \
@@ -136,18 +91,19 @@ macos:
 		$(call log_info,"正在安装 Homebrew..."); \
 		/bin/bash -c "$$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"; \
 		eval "$$(/opt/homebrew/bin/brew shellenv)"; \
+	else \
+		$(call log_info,"Homebrew 已安装"); \
 	fi
 	
-	@for tool in stow gnupg pinentry-mac mihomo; do \
+	$(call log_info,"安装 Homebrew Formulae...")
+	@for tool in $(BREW_FORMULAE); do \
 		if ! brew list $$tool &>/dev/null; then \
 			$(call log_info,"安装 $$tool..."); \
-			brew install $$tool; \
+			brew install $$tool || $(call log_warn,"$$tool 安装失败"); \
 		fi \
 	done
 	
-	@brew tap homebrew/services
-	@brew services restart mihomo || brew services start mihomo
-	
+	$(call log_info,"安装 Homebrew Casks...")
 	@for app in $(BREW_CASKS); do \
 		if ! brew list --cask $$app &>/dev/null; then \
 			$(call log_info,"安装 $$app..."); \
@@ -155,15 +111,9 @@ macos:
 		fi \
 	done
 	
-	@for tool in $(BREW_FORMULAE); do \
-		if ! brew list $$tool &>/dev/null; then \
-			$(call log_info,"安装 $$tool..."); \
-			brew install $$tool || $(call log_warn,"$$tool 安装失败"); \
-		fi \
-	done
+	$(call log_info,"macOS 环境配置完成")
 
-# Arch Linux 配置
-arch:
+install-pkg-arch:
 	$(call log_info,"开始配置 Arch Linux 环境...")
 	@sudo pacman -Syu --noconfirm
 	
@@ -186,83 +136,83 @@ arch:
 		fi \
 	done
 
-# dotfiles 配置
-dotfiles:
-	$(call log_info,"配置 dotfiles...")
-	@mkdir -p "$(XDG_CONFIG_HOME)"
 
-	@if [ ! -d "$(XDG_CONFIG_HOME)/dotfiles" ] || [ -z "$$(ls -A $(XDG_CONFIG_HOME)/dotfiles 2>/dev/null)" ]; then \
-		git clone https://github.com/tsingksan/dotfiles.git "$(XDG_CONFIG_HOME)/dotfiles" || exit 1; \
-	else \
-		git -C "$(XDG_CONFIG_HOME)/dotfiles" pull; \
-	fi
+setup-dotfiles:
+	$(call log_info,"setup dotfiles...")
+	@bash $(SETUP_DOTFILES_SCRIPT)
+	$(call log_info,"setup dotfiles done")
 
-	@cd "$(XDG_CONFIG_HOME)/dotfiles" && stow -D . -t ~ && stow . -t ~ || exit 1
-
-	@mkdir -p "$$HOME/.ssh" "$$HOME/.gnupg"
-	@chmod 700 "$$HOME/.gnupg"
-	@if ! grep -q "^pinentry-program" "$$HOME/.gnupg/gpg-agent.conf" 2>/dev/null; then \
-		if [ "$(OS)" = "Darwin" ]; then \
-			echo "pinentry-program /opt/homebrew/bin/pinentry-mac" >> "$$HOME/.gnupg/gpg-agent.conf"; \
-		elif [ "$(IS_ARCH)" = "1" ]; then \
-			echo "pinentry-program /usr/bin/pinentry" >> "$$HOME/.gnupg/gpg-agent.conf"; \
-		fi \
-	fi
-
-
-	# @killall gpg-agent 2>/dev/null || true
-	# @gpg-agent --daemon --enable-ssh-support
-
-	@gpg-connect-agent reloadagent /bye
-	@export GPG_TTY=$$(tty)
-	@export SSH_AUTH_SOCK=$$(gpgconf --list-dirs agent-ssh-socket)
-	@gpgconf --launch gpg-agent
-
-	@if ssh -T git@github.com 2>/dev/null; then \
-		cd "$(XDG_CONFIG_HOME)/dotfiles" && git remote set-url origin git@github.com:tsingksan/dotfiles.git; \
-	fi
-
-	@if [ "$(OS)" = "Darwin" ]; then \
-		rm -rf "$$HOME/Library/Preferences/konsolerc" "$$HOME/Library/Application Support/konsole"; \
-		mkdir -p "$$HOME/Library/Application Support"; \
-		ln -sf "$(XDG_CONFIG_HOME)/dotfiles/.config/konsolerc" "$$HOME/Library/Preferences/konsolerc"; \
-		ln -sf "$(XDG_CONFIG_HOME)/dotfiles/.local/share/konsole" "$$HOME/Library/Application Support"; \
-	fi
-
-	@mkdir -p "$(XDG_CONFIG_HOME)/alacritty"
-	@if [ -f "$(XDG_CONFIG_HOME)/alacritty/alacritty.toml" ] && [ ! -L "$(XDG_CONFIG_HOME)/alacritty/alacritty.toml" ]; then \
-		mv "$(XDG_CONFIG_HOME)/alacritty/alacritty.toml" "$(XDG_CONFIG_HOME)/alacritty/alacritty.toml.backup"; \
-	fi
-	@if [ "$(OS)" = "Darwin" ]; then \
-		ln -sf "$(XDG_CONFIG_HOME)/dotfiles/.config/alacritty/mac.toml" "$(XDG_CONFIG_HOME)/alacritty/alacritty.toml"; \
-	elif [ "$(IS_ARCH)" = "1" ]; then \
-		ln -sf "$(XDG_CONFIG_HOME)/dotfiles/.config/alacritty/arch.toml" "$(XDG_CONFIG_HOME)/alacritty/alacritty.toml"; \
-	fi
-
-	@mkdir -p "$(XDG_CONFIG_HOME)/mihomo"
-	@if [ ! -d "$(XDG_CONFIG_HOME)/mihomo/.git" ]; then \
-		git clone git@github.com:tsingksan/Profile.git "$(XDG_CONFIG_HOME)/mihomo" || exit 1; \
-	else \
-		git -C "$(XDG_CONFIG_HOME)/mihomo" pull; \
-	fi
-
-	@if [ "$(OS)" = "Darwin" ]; then \
-		sudo mkdir -p "/opt/homebrew/etc/mihomo"; \
-		cd "$(XDG_CONFIG_HOME)/mihomo"; \
-		stow . -t "/opt/homebrew/etc/mihomo"
-	elif [ "$(IS_ARCH)" = "1" ]; then \
-		sudo mkdir -p "/etc/mihomo"; \
-		cd "$(XDG_CONFIG_HOME)/mihomo"; \
-		stow . -t "/etc/mihomo"
-	fi
-
-	@if [ "$$(basename $$(grep $${USER}: /etc/passwd | cut -d: -f7))" != "zsh" ]; then \
-		chsh -s $$(command -v zsh); \
-	fi
-
-	$(call log_info,"dotfiles 配置完成")
-
-# 链接vscode扩展到cursor
-cursor-extensions:
+code-link-cursor:
+	$(call log_info,"sync VSCode to Cursor...")
 	@ln -sf ~/.vscode/extensions ~/.cursor
-	$(call log_info,"已链接VSCode扩展到Cursor")
+	@ln -sf ~/Library/Application\ Support/Code/User/settings.json ~/Library/Application\ Support/Cursor/User
+	@ln -sf ~/Library/Application\ Support/Code/User/snippets ~/Library/Application\ Support/Cursor/User
+	@ln -sf ~/Library/Application\ Support/Code/User/workspaceStorage ~/Library/Application\ Support/Cursor/User
+	@ln -sf ~/Library/Application\ Support/Code/User/globalStorage ~/Library/Application\ Support/Cursor/User
+	@ln -sf ~/Library/Application\ Support/Code/User/History ~/Library/Application\ Support/Cursor/User
+	$(call log_info,"sync VSCode to Cursor done")
+
+# ============================================================================
+# Arch Linux 远程安装
+# ============================================================================
+
+archinstall:
+	@if [ "$(ARCHADDR)" = "unset" ]; then \
+		$(call log_error,"请设置 ARCHADDR 变量，例如: make archinstall ARCHADDR=192.168.1.100"); \
+		exit 1; \
+	fi
+	$(call log_info,"开始 Arch Linux 远程安装...")
+	$(call log_info,"目标主机: $(ARCHADDR):$(ARCHPORT)")
+	$(call log_info,"分区配置: ROOT=$(ROOT_DEVICE) SWAP=$(SWAP_DEVICE) BOOT=$(BOOT_DEVICE)")
+	@cat $(INSTALL_ARCH_SCRIPT) | ssh $(SSH_OPTIONS) -p $(ARCHPORT) root@$(ARCHADDR) \
+		"bash -s -- '$(ROOT_DEVICE)' '$(SWAP_DEVICE)' '$(BOOT_DEVICE)' '$(USERNAME)' '$(ROOT_PASSWORD)' '$(USER_PASSWORD)'"
+
+remount:
+	@if [ "$(ARCHADDR)" = "unset" ]; then \
+		$(call log_error,"请设置 ARCHADDR 变量，例如: make remount ARCHADDR=192.168.1.100"); \
+		exit 1; \
+	fi
+	$(call log_info,"重新挂载 Arch Linux 分区...")
+	@cat $(REMOUNT_ARCH_SCRIPT) | ssh $(SSH_OPTIONS) -p $(ARCHPORT) root@$(ARCHADDR) \
+		"bash -s -- '$(ROOT_DEVICE)' '$(SWAP_DEVICE)' '$(BOOT_DEVICE)'"
+	$(call log_info,"挂载完成")
+
+
+# ============================================================================
+# 主要目标
+# ============================================================================
+
+# 默认目标：显示帮助信息
+all:
+	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "  🚀 Dotfiles 管理系统"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo ""
+	@echo "📦 环境配置:"
+	@echo "  make install-pkg-macos            - 配置 macOS 环境（Homebrew + 软件）"
+	@echo "  make install-pkg-arch             - 配置 Arch Linux 环境（pacman + AUR）"
+	@echo "  make setup-dotfiles               - 配置 dotfiles（stow 链接）"
+	@echo "  make enable-mihomo                - 配置 mihomo（rclone 配置）"
+	@echo ""
+	@echo "🐧 Arch Linux 远程安装:"
+	@echo "  make archinstall ARCHADDR=<IP>  - 远程安装 Arch Linux"
+	@echo "  make remount ARCHADDR=<IP>      - 重新挂载分区"
+	@echo ""
+	@echo "🔧 开发工具:"
+	@echo "  make code-link-cursor - 链接 VSCode 扩展到 Cursor"
+	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "⚙️  当前配置:"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "  OS              = $(OS)"
+	@echo "  USERNAME        = $(USERNAME)"
+	@echo "  XDG_CONFIG_HOME = $(XDG_CONFIG_HOME)"
+	@echo ""
+	@echo "  ARCHADDR        = $(ARCHADDR)"
+	@echo "  ARCHPORT        = $(ARCHPORT)"
+	@echo "  ROOT_DEVICE     = $(ROOT_DEVICE)"
+	@echo "  SWAP_DEVICE     = $(SWAP_DEVICE)"
+	@echo "  BOOT_DEVICE     = $(BOOT_DEVICE)"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo ""
